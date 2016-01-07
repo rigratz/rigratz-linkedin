@@ -1,0 +1,244 @@
+package GUI;
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.Toolkit;
+import java.awt.event.ActionEvent;
+import java.io.File;
+
+import javax.swing.AbstractAction;
+import javax.swing.ButtonGroup;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JColorChooser;
+import javax.swing.JFrame;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import javax.swing.JRadioButton;
+import javax.swing.JRadioButtonMenuItem;
+import javax.swing.JSlider;
+import javax.swing.JToggleButton;
+import javax.swing.JToolBar;
+
+
+public class PowerPaintGUI {
+
+    /**
+     * Screen width constant.
+     */
+    private static final Dimension SCREEN = Toolkit.getDefaultToolkit().getScreenSize();
+    
+    /**
+     * Constant used in centering the frame, which is achieved through halving the dimensions.
+     */
+    private static final int HALF = 2;
+    
+    /**
+     * 
+     */
+    private final JFrame myFrame;
+    
+    /**
+     * 
+     */
+    private final JMenuBar myMenuBar;
+    
+    /**
+     * 
+     */
+    private final JToolBar myToolBar;
+    
+    public PowerPaintGUI() {
+        myFrame = new JFrame();
+        myMenuBar = new JMenuBar();
+        myToolBar = makeToolBar();
+    }
+
+    public void start() {
+        myFrame.setTitle("TCSS 305 Power Paint");
+        myFrame.setIconImage(new ImageIcon("./images/w.gif").getImage());
+        myFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        myMenuBar.add(fileMenu());
+        myMenuBar.add(optionsMenu());
+        myMenuBar.add(toolsMenu());
+        myMenuBar.add(helpMenu());
+        final JMenuItem color = new JMenuItem("Color...");
+        //color.setIcon(new ImageIcon("./images/color.png").);
+        color.setMnemonic('C');
+        myMenuBar.add(color);
+        
+        //myMenuBar.add(new JColorChooser());
+        myFrame.setJMenuBar(myMenuBar);
+        myFrame.add(myToolBar, BorderLayout.SOUTH);
+        final DrawingPanel dPanel = new DrawingPanel();
+        dPanel.setPreferredSize(new Dimension(400, 200));
+        myFrame.add(dPanel, BorderLayout.CENTER);
+        
+        // Packs and sets minimum dimension.
+        //myFrame.setSize(400, 200);       
+        myFrame.pack();
+        myFrame.setLocation(SCREEN.width / HALF - myFrame.getWidth() / HALF, 
+                            SCREEN.height / HALF - myFrame.getHeight() / HALF);
+        //myFrame.setMinimumSize(new Dimension(myFrame.getWidth(), myFrame.getHeight()));
+        myFrame.setVisible(true);
+    }
+    
+    private JMenu fileMenu() {
+        final JMenu menu = new JMenu("File");
+        menu.setMnemonic('F');
+        final JMenuItem undo = new JMenuItem("Undo all changes");
+        undo.setMnemonic('U');
+        undo.setEnabled(false);
+        final JMenuItem exit = new JMenuItem("Exit");
+        exit.setMnemonic('x');
+        menu.add(undo);
+        menu.addSeparator();
+        menu.add(exit);
+        
+        return menu;
+        
+    }
+    private JMenu optionsMenu() {
+        final JMenu menu = new JMenu("Options");
+        menu.setMnemonic('O');
+        final JMenuItem grid = new JMenuItem("Grid");
+        grid.setMnemonic('G');
+        final JMenu thick = new JMenu("Thickness");
+        thick.setMnemonic('T');
+        final JSlider slide = new JSlider(0, 20, 1);
+        slide.setMajorTickSpacing(5);
+        slide.setMinorTickSpacing(1);
+        slide.setPaintTicks(true);
+        slide.setPaintLabels(true);
+        slide.createStandardLabels(5, 0);
+        thick.add(new JMenuItem().add(slide));
+        menu.add(grid);
+        menu.add(thick);
+        
+        return menu;
+        
+    }
+    private JMenu toolsMenu() {
+        final JMenu menu = new JMenu("Tools");
+        menu.setMnemonic('T');
+        final ButtonGroup tools = new ButtonGroup();
+        final JRadioButtonMenuItem pencil = new JRadioButtonMenuItem("Pencil", new ImageIcon("./images/pencil_bw.gif"));
+        pencil.setMnemonic('P');
+        final JRadioButtonMenuItem line = new JRadioButtonMenuItem("Line", new ImageIcon("./images/line_bw.gif"));
+        line.setMnemonic('L');
+        final JRadioButtonMenuItem rectangle = new JRadioButtonMenuItem("Rectangle", new ImageIcon("./images/rectangle_bw.gif"));
+        rectangle.setMnemonic('R');
+        final JRadioButtonMenuItem ellipse = new JRadioButtonMenuItem("Ellipse", new ImageIcon("./images/ellipse_bw.gif"));
+        ellipse.setMnemonic('E');
+        
+//        final PencilAction pa = new PencilAction();
+//        final JRadioButton pencil = new JRadioButton(pa);
+        //final JMenuItem pm = new JMenuItem();
+        
+        tools.add(pencil);
+        tools.add(line);
+        tools.add(rectangle);
+        tools.add(ellipse);
+        
+        
+        
+        menu.add(pencil);
+        menu.add(line);
+        menu.add(rectangle);
+        menu.add(ellipse);
+        return menu;
+        
+    }
+    private JMenu helpMenu() {
+        final JMenu menu = new JMenu("Help");
+        menu.setMnemonic('H');
+        final JMenuItem about = new JMenuItem("About...");
+        about.setMnemonic('A');
+        menu.add(about);
+        
+        return menu;
+        
+    }
+    
+    private JToolBar makeToolBar() {
+        final JToolBar toolBar = new JToolBar();
+
+        final JToggleButton pencil = new JToggleButton("Pencil", new ImageIcon("./images/pencil_bw.gif"));
+        final JToggleButton line = new JToggleButton("Line", new ImageIcon("./images/line_bw.gif"));
+        final JToggleButton rectangle = new JToggleButton("Rectangle", new ImageIcon("./images/rectangle_bw.gif"));
+        final JToggleButton ellipse = new JToggleButton("Elllipse", new ImageIcon("./images/ellipse_bw.gif"));
+        
+//        final PencilAction pa = new PencilAction();
+//        final JRadioButton pb = new JRadioButton(pa);
+//        //final JMenuItem pm = new JMenuItem();
+        pencil.setMnemonic('P');
+        line.setMnemonic('L');
+        rectangle.setMnemonic('R');
+        ellipse.setMnemonic('E');
+        
+        final ButtonGroup tools = new ButtonGroup();
+        tools.add(pencil);
+        tools.add(line);
+        tools.add(rectangle);
+        tools.add(ellipse);
+        
+        toolBar.add(pencil);
+        toolBar.add(line);
+        toolBar.add(rectangle);
+        toolBar.add(ellipse);
+        return toolBar;
+    }
+    
+    class PencilAction extends AbstractAction {
+        public PencilAction() {
+            super("Pencil",  new ImageIcon("./images/pencil_bw.gif"));
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            // TODO Auto-generated method stub
+            
+        }
+        
+    }
+    
+    class LineAction extends AbstractAction {
+        public LineAction() {
+            super("Line",  new ImageIcon("./images/Line_bw.gif"));
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            // TODO Auto-generated method stub
+            
+        }
+        
+    }
+    
+    class RectangleAction extends AbstractAction {
+        public RectangleAction() {
+            super("Rectangle",  new ImageIcon("./images/rectangle_bw.gif"));
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            // TODO Auto-generated method stub
+            
+        }
+        
+    }
+    
+    class EllipseAction extends AbstractAction {
+        public EllipseAction() {
+            super("Ellipse",  new ImageIcon("./images/ellipse_bw.gif"));
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            // TODO Auto-generated method stub
+            
+        }
+        
+    }
+}

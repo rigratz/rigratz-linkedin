@@ -1,0 +1,332 @@
+/*
+ * TCSS 305
+ * 
+ * Final Assignment - Tetris
+ */
+
+package gui;
+
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.GradientPaint;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Observable;
+import java.util.Observer;
+
+import javax.swing.JPanel;
+import javax.swing.Timer;
+
+import model.Board;
+import model.Board.BoardData;
+import model.Board.GameStatus;
+
+/**
+ * This is the panel which the game board and pieces are drawn on.
+ * 
+ * @author Riley Gratzer
+ * @version 1.0
+ */
+@SuppressWarnings("serial")
+public class TetrisPanel extends JPanel implements Observer, KeyListener {
+    
+    /**
+     * Used for rounding the rectangles of the pieces.
+     */
+    protected static final int ROUNDER = 5;
+    
+    /**
+     * Panel's initial dimension.
+     */
+    private static final Dimension INITIAL_DIMENSION = new Dimension(200, 480);
+    
+    /**
+     * Used to position red line under board's "dead space".
+     */
+    private static final int DEAD_SPACE = 4;
+
+    /**
+     * The game board.
+     */
+    private Board myBoard;
+    
+    /**
+     * The list of color arrays representing the game's data.
+     */
+    private List<Color[]> myData;
+    
+    /**
+     * A boolean flag used to keep the game running or to end it.
+     */
+    private boolean myWinning;
+
+    /**
+     * The game's controls.
+     */
+    private final Controls myControls;
+    
+    /**
+     * The game's timer.
+     */
+    private final Timer myTimer;
+    
+    /**
+     * Boolean flag for whether the game is running or is paused.
+     */
+    private boolean myRunning;
+    
+    /**
+     * Boolean flag for reverse gravity mode.
+     */
+    private boolean myFlipper;
+    
+    /**
+     * Constructor of the TetrisPanel.
+     * 
+     * @param theBoard is the game board.
+     * @param theTimer is the game's timer.
+     * @param theControls are the game's controls.
+     */
+    public TetrisPanel(final Board theBoard, final Timer theTimer, 
+                                                                 final Controls theControls) {
+        super();
+        myBoard = theBoard;
+        addKeyListener(this);
+        myData = new ArrayList<Color[]>();
+        myWinning = true;
+        myControls = theControls;
+        myTimer = theTimer;
+        myRunning = true;
+        myFlipper = true;
+        this.setPreferredSize(INITIAL_DIMENSION);
+    }
+
+    @Override
+    public void paintComponent(final Graphics theGraphics) {
+        super.paintComponent(theGraphics);
+        final Graphics2D g = (Graphics2D) theGraphics;
+        
+        final Dimension size = this.getSize();
+        final int scale = getScale(size.getHeight());
+        
+        final GradientPaint bg = new GradientPaint(0, 0, Color.BLUE.darker().darker(), 
+                                   (int) size.getWidth(), (int) size.getHeight(), Color.BLACK);
+        
+        g.setPaint(bg);
+        g.fillRect(0, 0, (int) size.getWidth(), (int) size.getHeight());
+        
+        if (myRunning) {
+            int x = 0;
+            int y = 0;
+            
+            for (final Color[] ca: myData) {
+                
+                for (final Color c: ca) {
+                    if (c != null) {
+
+                        g.setColor(c);
+                        g.fillRoundRect(x, y, scale, scale, ROUNDER, ROUNDER);
+                        g.setColor(Color.BLACK);
+                        g.drawRoundRect(x, y, scale, scale, ROUNDER, ROUNDER);
+                    }    
+                    x += scale;
+                }
+                y += scale;
+                x = 0;
+            }
+            
+        } else {
+            g.setColor(Color.RED);
+            g.drawString("Game Paused", this.getWidth() / 2, scale);
+        }
+        
+        // Here, DEAD_SPACE is used both for positioning and for assigning the thickness of
+        // the lines
+        
+        g.setStroke(new BasicStroke(DEAD_SPACE));
+        g.setColor(Color.RED.darker());
+        
+        if (myFlipper) {
+            g.drawLine(0, scale * DEAD_SPACE, myBoard.getWidth() * scale, scale * DEAD_SPACE);
+        } else {
+            g.drawLine(0, scale * (myData.size() - DEAD_SPACE), 
+                       myBoard.getWidth() * scale, scale * (myData.size() - DEAD_SPACE));
+            
+        }
+        
+        g.setColor(Color.BLACK);
+        g.drawRect(0, 0, myBoard.getWidth() * scale, myData.size() * scale);
+        
+        if (!myWinning) {
+            g.setColor(Color.RED);
+            g.drawString("TERMINATED", this.getWidth() / 2, scale);
+        }
+    }
+    
+    /**
+     * Used in creating a new game.
+     * 
+     * @param theBoard is the new board to be used.
+     */
+    protected void newGameBoard(final Board theBoard) {
+        myBoard = theBoard;
+        myWinning = true;
+    }
+    
+    /**
+     * Used to flip the board data from top to bottom.
+     * 
+     * @return the newly aligned board.
+     */
+    protected List<Color[]> flipBoard() {
+        final List<Color[]> copy = new ArrayList<Color[]>();
+        for (int i = myData.size() - 1; i >= 0; i--) {
+            copy.add(myData.get(i));
+        }
+        return copy;
+    }
+    
+    /**
+     * Boolean flag used in determining if reverse gravity is enabled.
+     * 
+     * @return the gravity reversal flag.
+     */
+    public boolean isReverseGravity() {
+        return myFlipper;
+    }
+    
+    /**
+     * Toggles flag for reverse gravity mode.
+     */
+    protected void toggleFlip() {
+        if (myFlipper) {
+            myFlipper = false;
+        } else {
+            myFlipper = true;
+        }
+    }
+    
+    /**
+     * Returns a draw scale based on the height of the panel, to keep the game board visible
+     * and keep the pieces square shaped.
+     * 
+     * @param theHeight is the Height of the panel.
+     * 
+     * @return the scale value.
+     */
+    private int getScale(final double theHeight) {
+        int scale;
+        if (myData.isEmpty()) {
+            scale = 0;
+        } else {
+            scale = (int) theHeight / myData.size();
+        }
+
+        return scale;
+    }
+    
+    /**
+     * This method is used to end the game when a piece crosses over the red line.
+     *  
+     * @param theTerminator states whether the game is over or not.
+     */
+    public void terminate(final boolean theTerminator) {
+        myWinning = theTerminator;
+    }
+
+    /**
+     * Pauses or resumes the game.
+     */
+    private void pause() {
+        if (myRunning) {
+            myRunning = false;
+            myTimer.stop();
+            myControls.gamePaused();
+        } else {
+            myRunning = true;
+            myTimer.start();
+            myControls.defaultControls();
+        }
+        repaint();
+    }
+    
+    /**
+     * Gets the game's controls.
+     * 
+     * @return the game's controls.
+     */
+    public Controls getControls() {
+        return myControls;
+    }
+
+    /**
+     * Updates the next piece when notified by an observable passing a BoardData.
+     * 
+     * @param theO is the observable.
+     * @param theArg is the data being passed by the observable.
+     */
+    @Override
+    public void update(final Observable theO, final Object theArg) {
+        if (theArg instanceof BoardData) {
+            myData = ((BoardData) theArg).getBoardData();
+            if (myFlipper) {
+                myData = flipBoard(); 
+            }
+        }
+        repaint();
+        if (theArg instanceof GameStatus) {
+            myControls.gameEnd();
+        }
+        
+    }
+
+    @Override
+    public void keyTyped(final KeyEvent theEvent) {
+        final int id = theEvent.getKeyChar();
+
+        if (myControls.getCCW() == id) {
+            myBoard.rotateCCW();
+        }
+        if (myControls.getCW() == id) {
+            myBoard.rotateCW();
+        }
+        if (myControls.getHold() == id) {
+            myBoard.hold();
+        }
+        
+    }
+
+    @Override
+    public void keyPressed(final KeyEvent theEvent) {
+        final int id = theEvent.getKeyCode();
+
+        if (myControls.getLeft() == id) {
+            myBoard.left();
+        }
+        if (myControls.getRight() == id) {
+            myBoard.right();
+        }
+        if (myControls.getDown() == id) {
+            myBoard.down();
+        }
+    }
+
+    @Override
+    public void keyReleased(final KeyEvent theEvent) {
+        final int id = theEvent.getKeyCode();
+
+        if (myControls.getPause() == id) {
+            pause();
+        }
+        if (myControls.getDrop() == id) {
+            myBoard.drop();
+        }
+        
+    }
+
+}

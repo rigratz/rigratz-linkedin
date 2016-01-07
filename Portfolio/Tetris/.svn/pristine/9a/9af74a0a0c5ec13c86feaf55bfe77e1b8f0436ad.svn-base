@@ -1,0 +1,124 @@
+/*
+ * TCSS 305
+ * 
+ * Final Assignment - Tetris
+ */
+
+package gui;
+
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.GradientPaint;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.geom.RoundRectangle2D;
+import java.util.Observable;
+import java.util.Observer;
+
+import javax.swing.JPanel;
+
+import model.Point;
+import model.TetrisPiece;
+
+/**
+ * This is the panel used to view the next incoming piece.
+ * 
+ * @author Riley Gratzer
+ * @version 1.0
+ */
+@SuppressWarnings("serial")
+public class NextPieceViewer extends JPanel implements Observer {
+
+    /**
+     * Initial dimension of the NextPieceViewer.
+     */
+    private static final Dimension INITIAL_DIMENSION = new Dimension(150, 90);
+    
+    /**
+     * A spacer used for positioning.
+     */
+    private static final int SPACER = 10;
+    
+    /**
+     * Width of the box around next piece.
+     */
+    private static final int BOX_WIDTH = 5;
+    
+    /**
+     * Height of the box around next piece.
+     */
+    private static final int BOX_HEIGHT = 4;
+    
+    /**
+     * The scale used for drawing the pieces.
+     */
+    private static final int SCALE = 20;
+    
+    /**
+     * The next piece to view.
+     */
+    private TetrisPiece myNextPiece;
+    
+    /**
+     * Constructor of the NextPieceViewer.
+     */
+    public NextPieceViewer() {
+        super();
+        this.setPreferredSize(INITIAL_DIMENSION);
+    }
+    
+    @Override
+    public void paintComponent(final Graphics theGraphics) {
+        super.paintComponent(theGraphics);
+        final Graphics2D g = (Graphics2D) theGraphics;
+
+        
+        final Dimension size = this.getSize();
+        //final int scale = getScale(size.getHeight());
+        
+        final GradientPaint bg = new GradientPaint(0, 0, Color.WHITE.darker().darker(), 
+                                   (int) size.getWidth(), (int) size.getHeight(), Color.BLACK);
+        
+        g.setPaint(bg);
+        g.fillRect(0, 0, (int) size.getWidth(), (int) size.getHeight());
+        
+        //setBackground(Color.WHITE);
+        g.setColor(Color.WHITE);
+        g.drawRect(SPACER, SPACER, SCALE * BOX_WIDTH, SCALE * BOX_HEIGHT);
+        g.drawString("NEXT PIECE", SPACER, (SCALE * BOX_WIDTH) + SPACER);
+        RoundRectangle2D.Double piece;
+        if (myNextPiece != null) {
+            for (final Point p: myNextPiece.getPoints()) {
+            /*
+             * I'm leaving the 3 here because a constant wouldn't make it any more
+             * readable. Its purpose here is to flip the y component of the points
+             * of the piece in order to be viewed in its correct rotation.
+             */
+                piece = new RoundRectangle2D.Double((p.x() + 1) * SCALE + SPACER, 
+                                                (-p.y() + 3) * SCALE + SPACER, 
+                                                SCALE, SCALE, TetrisPanel.ROUNDER, 
+                                                TetrisPanel.ROUNDER);
+                g.setColor(myNextPiece.getColor());
+                g.fill(piece);
+                g.setColor(Color.BLACK);
+                g.draw(piece);
+            }
+        }
+    }
+
+
+    /**
+     * Updates the next piece when notified by an observable passing a TetrisPiece.
+     * 
+     * @param theO is the observable.
+     * @param theArg is the data being passed by the observable.
+     */
+    @Override
+    public void update(final Observable theO, final Object theArg) {
+        if (theArg instanceof TetrisPiece) {           
+            myNextPiece = (TetrisPiece) theArg;
+            repaint();
+        }
+    }
+
+}

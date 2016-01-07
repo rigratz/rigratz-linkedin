@@ -1,0 +1,414 @@
+/*
+ * TCSS 305 - Assignment 5: PowerPaint
+ */
+
+package gui;
+
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Toolkit;
+import java.awt.event.KeyEvent;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+
+import javax.swing.Action;
+import javax.swing.ButtonGroup;
+import javax.swing.ImageIcon;
+import javax.swing.JCheckBoxMenuItem;
+import javax.swing.JFrame;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import javax.swing.JRadioButtonMenuItem;
+import javax.swing.JSlider;
+import javax.swing.JToggleButton;
+import javax.swing.JToolBar;
+import javax.swing.KeyStroke;
+
+
+
+/**
+ * This class is creates the GUI for the PowerPaint application.
+ * 
+ * @author Riley Gratzer
+ * @version 1.2
+ */
+public class PowerPaintGUI implements PropertyChangeListener {
+
+    /**
+     * Screen width constant.
+     */
+    private static final Dimension SCREEN = Toolkit.getDefaultToolkit().getScreenSize();
+    
+    /**
+     * Constant used in centering the frame, which is achieved through halving the dimensions.
+     */
+    private static final int HALF = 2;
+    /**
+     * Scale for the slider.
+     */
+    private static final int SLIDER_SCALE = 5;
+    
+    /**
+     * The panel's preferred width.
+     */
+    private static final int WIDTH = 400;
+    
+    /**
+     * The panel's preferred height.
+     */
+    private static final int HEIGHT = 200;
+    
+    /**
+     * The pencil action.
+     */
+    private final Action myPencilAct;
+    
+    /**
+     * The rectangle action.
+     */
+    private final Action myRectAct;
+    
+    /**
+     * The line action.
+     */
+    private final Action myLineAct;
+    
+    /**
+     * The ellipse action.
+     */
+    private final Action myEllAct;
+    
+    /**
+     * The frame of the GUI.
+     */
+    private final JFrame myFrame;
+    
+    /**
+     * The frame's menu bar.
+     */
+    private final JMenuBar myMenuBar;
+    
+    /**
+     * The frame's tool bar.
+     */
+    private final JToolBar myToolBar;
+    
+    /**
+     * The panel to be drawn on.
+     */
+    private final DrawingPanel myPanel;
+    
+    /**
+     * The group of undo/redo buttons.
+     */
+    private final Undoable myUndoables;   
+    
+    /**
+     * Constructor of the GUI.
+     */
+    public PowerPaintGUI() {
+        myFrame = new JFrame();
+        
+        myPanel = new DrawingPanel();
+        myUndoables = new Undoable(myPanel);
+        myPencilAct = new PencilAction("Pencil", new ImageIcon("./images/pencil_bw.gif"),
+                                                                       KeyEvent.VK_P, myPanel);
+        myLineAct = new LineAction("Line", new ImageIcon("./images/line_bw.gif"),
+                                                                       KeyEvent.VK_L, myPanel);
+        myRectAct = new RectangleAction("Rectangle", 
+                           new ImageIcon("./images/rectangle_bw.gif"), KeyEvent.VK_R, myPanel);
+        myEllAct = new EllipseAction("Ellipse", new ImageIcon("./images/ellipse_bw.gif"), 
+                                                                       KeyEvent.VK_E, myPanel);
+        myMenuBar = new JMenuBar();
+        myToolBar = makeToolBar();
+        
+    }
+
+    /**
+     * This method builds the GUI.
+     */
+    public void start() {
+        myFrame.setTitle("TCSS 305 Power Paint");
+        myFrame.setIconImage(new ImageIcon("./images/w.gif").getImage());
+        myFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        myPanel.addPropertyChangeListener(this);
+        
+        myMenuBar.add(fileMenu());
+        myMenuBar.add(optionsMenu());
+        myMenuBar.add(toolsMenu());
+        myMenuBar.add(helpMenu());
+        myMenuBar.add(new JMenuItem(new ColorAction("Color...", new ColorIcon(Color.BLACK), 
+                                                    KeyEvent.VK_C, myPanel)));
+        myFrame.setJMenuBar(myMenuBar);
+        
+        myFrame.add(myToolBar, BorderLayout.SOUTH);
+
+        myPanel.setPreferredSize(new Dimension(WIDTH, HEIGHT));
+        myFrame.add(myPanel, BorderLayout.CENTER);
+             
+        myFrame.pack();
+        myFrame.setLocation(SCREEN.width / HALF - myFrame.getWidth() / HALF, 
+                            SCREEN.height / HALF - myFrame.getHeight() / HALF);
+        myFrame.setVisible(true);
+    }
+    
+    /**
+     * This method creates the File drop menu.
+     * 
+     * @return the File menu.
+     */
+    private JMenu fileMenu() {
+        final JMenu menu = new JMenu("File");
+        menu.setMnemonic(KeyEvent.VK_F);
+
+        final JMenuItem exit = new JMenuItem(new ExitAction("Exit", KeyEvent.VK_X));
+
+        menu.add(myUndoables.getUndoAll());
+        myUndoables.getUndoAll().setEnabled(false);
+        menu.add(myUndoables.getUndo());
+        myUndoables.getUndo().setEnabled(false);
+        menu.add(myUndoables.getRedo());
+        myUndoables.getRedo().setEnabled(false);
+        menu.addSeparator();
+        menu.add(exit);
+               
+        return menu;
+        
+    }
+    
+    /**
+     * This method creates the Options drop menu.
+     * 
+     * @return the Options menu.
+     */
+    private JMenu optionsMenu() {
+        final JMenu menu = new JMenu("Options");
+        menu.setMnemonic(KeyEvent.VK_O);
+        final JCheckBoxMenuItem grid = new JCheckBoxMenuItem(new GridAction("Grid", 
+                                                                      KeyEvent.VK_G, myPanel));
+        final JMenu thick = new JMenu("Thickness");
+        thick.setMnemonic(KeyEvent.VK_T);
+        final JSlider slide = new JSlider(0, 20, 1);
+        slide.setMajorTickSpacing(SLIDER_SCALE);
+        slide.setMinorTickSpacing(1);
+        slide.setPaintTicks(true);
+        slide.setPaintLabels(true);
+        slide.createStandardLabels(SLIDER_SCALE, 0);
+        slide.addChangeListener(new SliderAction(myPanel));
+        thick.add(new JMenuItem().add(slide));
+        
+        menu.add(grid);
+        menu.add(thick);
+        
+        return menu;       
+    }
+    
+    /**
+     * This method creates the Tools drop menu.
+     * 
+     * @return the Tools menu.
+     */
+    private JMenu toolsMenu() {
+        final JMenu menu = new JMenu("Tools");
+        menu.setMnemonic(KeyEvent.VK_T);
+        final ButtonGroup tools = new ButtonGroup();
+        final JRadioButtonMenuItem pencil = new JRadioButtonMenuItem(myPencilAct);
+        final JRadioButtonMenuItem line = new JRadioButtonMenuItem(myLineAct);
+        final JRadioButtonMenuItem rectangle = new JRadioButtonMenuItem(myRectAct);
+        final JRadioButtonMenuItem ellipse = new JRadioButtonMenuItem(myEllAct);
+
+        tools.add(pencil);
+        tools.add(line);
+        tools.add(rectangle);
+        tools.add(ellipse);
+
+        menu.add(pencil);
+        menu.add(line);
+        menu.add(rectangle);
+        menu.add(ellipse);
+        
+        return menu;     
+    }
+    
+    /**
+     * This method creates the Help drop menu.
+     * 
+     * @return the Help menu.
+     */
+    private JMenu helpMenu() {
+        final JMenu menu = new JMenu("Help");
+        menu.setMnemonic('H');
+        final JMenuItem about = new JMenuItem(new AboutAction("About...", KeyEvent.VK_A));
+
+        menu.add(about);
+        
+        return menu;     
+    }
+    
+    /**
+     * This method creates the ToolBar.
+     * 
+     * @return the ToolBar.
+     */
+    private JToolBar makeToolBar() {
+        final JToolBar toolBar = new JToolBar();
+
+        final JToggleButton pencil = new JToggleButton(myPencilAct);
+        final JToggleButton line = new JToggleButton(myLineAct);
+        final JToggleButton rectangle = new JToggleButton(myRectAct);
+        final JToggleButton ellipse = new JToggleButton(myEllAct);
+        
+        final ButtonGroup tools = new ButtonGroup();
+        tools.add(pencil);
+        tools.add(line);
+        tools.add(rectangle);
+        tools.add(ellipse);
+        
+        toolBar.add(pencil);
+        toolBar.add(line);
+        toolBar.add(rectangle);
+        toolBar.add(ellipse);
+        return toolBar;
+    }
+
+    @Override
+    public void propertyChange(final PropertyChangeEvent theEvt) {
+        
+        // Commented out code below intentionally left in, for possible debug use.
+        //System.out.println(theEvt.getPropertyName());
+        
+        if ("U".equals(theEvt.getNewValue())) {
+            myUndoables.getUndoAll().setEnabled(true);
+            myUndoables.getUndo().setEnabled(true);
+            myUndoables.getRedo().setEnabled(false);           
+        
+        } else if ("N".equals(theEvt.getNewValue())) {
+            myUndoables.getUndoAll().setEnabled(false);
+            myUndoables.getUndo().setEnabled(false);
+            myUndoables.getRedo().setEnabled(false); 
+        
+        } else if ("R".equals(theEvt.getNewValue())) {
+            myUndoables.getUndoAll().setEnabled(false);
+            myUndoables.getUndo().setEnabled(false);
+            myUndoables.getRedo().setEnabled(true); 
+        
+        } else if ("RU".equals(theEvt.getNewValue())) {
+            myUndoables.getUndoAll().setEnabled(true);
+            myUndoables.getUndo().setEnabled(true);
+            myUndoables.getRedo().setEnabled(true); 
+        }       
+    }
+
+    /**
+     * This is a class to store references to the Undo and redo type buttons, the access and
+     * set within different classes.
+     * 
+     * @author Riley Gratzer
+     * @version 1.2
+     */
+    class Undoable {
+        
+        /**
+         * The panel to be acted on.
+         */
+        private final DrawingPanel myPanel;
+        
+        /**
+         * The Undo all changes item.
+         */
+        private final JMenuItem myUndoAll;
+        
+        /**
+         * The undo single move item.
+         */
+        private final JMenuItem myUndo;
+        
+        /**
+         * The redo single move item.
+         */
+        private final JMenuItem myRedo;
+        
+        /**
+         * Constructor of the undoable object.
+         * 
+         * @param thePanel is the panel being acted on.
+         */
+        public Undoable(final DrawingPanel thePanel) {
+            myPanel = thePanel;
+            myUndoAll = createUndoAll();
+            myUndo = createUndo();
+            myRedo = createRedo();
+            
+        }
+        
+        /**
+         * Creates an undo all changes menu item.
+         * 
+         * @return the created undo all menu item.
+         */
+        private JMenuItem createUndoAll() {
+            final JMenuItem undo = new JMenuItem(new UndoAllAction("Undo all changes", 
+                                                        KeyEvent.VK_U, myPanel));
+            undo.setEnabled(true);
+            return undo;
+        }
+        
+        /**
+         * Creates an undo menu item.
+         * 
+         * @return the created undo menu item.
+         */
+        private JMenuItem createUndo() {
+            final JMenuItem undo = new JMenuItem(new UndoAction("Undo", KeyEvent.VK_N, 
+                                                                        myPanel));
+            
+            final KeyStroke ctrlZKeyStroke = KeyStroke.getKeyStroke("control Z");
+            undo.setAccelerator(ctrlZKeyStroke);
+            undo.setEnabled(true);
+            return undo;
+        }
+        
+        /**
+         * Creates a redo menu item.
+         * 
+         * @return the created redo menu item.
+         */
+        private JMenuItem createRedo() {
+            final JMenuItem redo = new JMenuItem(new RedoAction("Redo", KeyEvent.VK_D, 
+                                                                        myPanel));
+            final KeyStroke ctrlYKeyStroke = KeyStroke.getKeyStroke("control Y");
+            redo.setAccelerator(ctrlYKeyStroke);
+            redo.setEnabled(true);
+            return redo;
+        }
+        
+        /**
+         * Gets the undo all changes menu item.
+         * 
+         * @return the undo all menu item.
+         */
+        public JMenuItem getUndoAll() {
+            return myUndoAll;
+        }
+        
+        /**
+         * Gets the undo menu item.
+         * 
+         * @return the undo menu item.
+         */
+        public JMenuItem getUndo() {
+            return myUndo;
+        }
+        
+        /**
+         * Gets the redo menu item.
+         * 
+         * @return the redo menu item.
+         */
+        public JMenuItem getRedo() {
+            return myRedo;
+        }
+    }
+}

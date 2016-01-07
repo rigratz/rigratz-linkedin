@@ -1,0 +1,32 @@
+package gui;
+
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+
+import javax.swing.JPanel;
+
+public class ControlsView extends JPanel {
+
+    private final TetrisPanel myPanel;
+    
+    public ControlsView(final TetrisPanel thePanel) {
+        myPanel = thePanel;
+        setPreferredSize(new Dimension(200, 200));
+        repaint();
+    }
+
+    @Override
+    public void paintComponent(final Graphics theGraphics) {
+        super.paintComponent(theGraphics);
+        final Graphics2D g = (Graphics2D) theGraphics;
+        setBackground(Color.GRAY.brighter());
+        g.drawString("Left - Left Arrow", 5, 20);
+        g.drawString("Right - Right Arrow", 5, 50);
+        g.drawString("Down - Down Arrow", 5, 80);
+        g.drawString("Rotate CCW - Z", 5, 110);
+        g.drawString("Rotate CW - Y", 5, 140);
+        
+    }
+}

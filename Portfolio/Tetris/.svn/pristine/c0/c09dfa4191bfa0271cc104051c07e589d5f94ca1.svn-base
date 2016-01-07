@@ -1,0 +1,111 @@
+package gui;
+
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.util.Observable;
+import java.util.Observer;
+
+import javax.swing.JPanel;
+import javax.swing.Timer;
+
+import model.Board.CompletedLines;
+
+/**
+ * 
+ * @author Riley Gratzer
+ * @version 1.0
+ */
+@SuppressWarnings("serial")
+public class ScorePanel extends JPanel implements Observer {
+
+    /**
+     * 
+     */
+    private int myLines;
+    /**
+     * 
+     */
+    private int myLevel;
+    /**
+     * 
+     */
+    private long myScore;
+    /**
+     * 
+     */
+    private final Timer myTimer;
+    
+    /**
+     * Constructor of the Score Panel.
+     * 
+     * @param theTimer is the game's timer.
+     */
+    public ScorePanel(final Timer theTimer) {
+        super();
+        myLines = 0;
+        myLevel = 1;
+        myScore = 0;
+        myTimer = theTimer;
+        this.setPreferredSize(new Dimension(500, 50));
+    }
+
+    /**
+     * Paints the score panel.
+     * 
+     * @param theGraphics is the program's graphics.
+     */
+    @Override
+    public void paintComponent(final Graphics theGraphics) {
+        super.paintComponent(theGraphics);
+        final Graphics2D g = (Graphics2D) theGraphics;
+        g.drawString("Level: " + myLevel, 10, 10);
+        g.drawString("Lines: " + myLines, 10, 30);
+        g.drawString("Score: " + myScore, 10, 50);
+    }
+    
+    /**
+     * Determines player's level.
+     * 
+     * @param theIncrease whether to increase or not.
+     */
+    public void levelUp(final boolean theIncrease) {
+        if (theIncrease) {
+            myLevel++;
+        }
+    }
+    /**
+     * Increases the score based on number of lines cleared.
+     * 
+     * @param theLines are the newly cleared lines.
+     */
+    public void scoreUp(final int theLines) {
+        switch(theLines) {
+            case 1: myScore += 40 * (myLevel); break;
+            case 2: myScore += 100 * (myLevel); break;
+            case 3: myScore += 300 * (myLevel); break;
+            case 4: myScore += 1200 * (myLevel); break;
+            default: break;           
+        }
+        myLevel = myLines / 10 + 1;
+        if (myTimer.getDelay() > 100) {
+            myTimer.setDelay(1000 - (100 * myLevel));
+        }
+    }
+
+    /**
+     * Updates.
+     * 
+     * @param theO is the Observable object.
+     * @param theArg is the data from the Observable.
+     */
+    @Override
+    public void update(final Observable theO, final Object theArg) {
+        if (theArg instanceof CompletedLines) {
+            myLines += ((CompletedLines) theArg).getCompletedLines().size();
+            scoreUp(((CompletedLines) theArg).getCompletedLines().size());
+        }
+        repaint();
+    }
+}

@@ -1,0 +1,72 @@
+package gui;
+
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.geom.RoundRectangle2D;
+import java.util.Observable;
+import java.util.Observer;
+
+import javax.swing.JPanel;
+
+import model.Point;
+import model.TetrisPiece;
+
+/**
+ * 
+ * @author Riley Gratzer
+ * @version 1.0
+ */
+@SuppressWarnings("serial")
+public class NextPieceViewer extends JPanel implements Observer {
+
+    /**
+     * 
+     */
+    private static final int SCALE = 20;
+    
+    /**
+     * 
+     */
+    private TetrisPiece myNextPiece;
+    
+    /**
+     * Constructor of the NextPieceViewer.
+     */
+    public NextPieceViewer() {
+        super();
+
+        setPreferredSize(new Dimension(100, 100));
+    }
+    
+    @Override
+    public void paintComponent(final Graphics theGraphics) {
+        super.paintComponent(theGraphics);
+        final Graphics2D g = (Graphics2D) theGraphics;
+        setBackground(Color.WHITE);
+        g.setColor(Color.BLACK);
+        g.drawRect(10, 10, SCALE * 5, SCALE * 4);
+        g.drawString("NEXT PIECE", 10, (SCALE * 5) + 10);
+        RoundRectangle2D.Double piece;
+        for (final Point p: myNextPiece.getPoints()) {
+            piece = new RoundRectangle2D.Double((p.x() + 1) * SCALE + 10, (-p.y() + 3) * SCALE + 10, 
+                                                SCALE, SCALE, 5, 5);
+            g.setColor(myNextPiece.getColor());
+            g.fill(piece);
+            g.setColor(Color.BLACK);
+            g.draw(piece);
+        }
+    }
+
+
+    @Override
+    public void update(Observable o, Object arg) {
+        if (arg instanceof TetrisPiece) {
+            
+            myNextPiece = (TetrisPiece) arg;
+            repaint();
+        }
+    }
+
+}

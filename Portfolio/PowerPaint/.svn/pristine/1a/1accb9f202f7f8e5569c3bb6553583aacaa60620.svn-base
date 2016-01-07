@@ -1,0 +1,42 @@
+/**
+ * 
+ */
+package tools;
+
+import java.awt.Graphics2D;
+import java.awt.Point;
+import java.awt.geom.Line2D;
+import java.util.List;
+
+/**
+ * @author BlenderChild
+ * @version 1.2
+ */
+public class Line extends AbstractTool {
+
+    /**
+     * 
+     */
+    public Line() {
+        super('L');
+    }
+
+    /**
+     * Draws a line.
+     * 
+     * @param theGraphics a
+     * @param theStart a
+     * @param theEnd a
+     */
+    @Override
+    public void drawShape(final Graphics2D theGraphics,
+                          Point theStart, Point theEnd) {
+
+        theGraphics.draw(new Line2D.Double(theStart, theEnd));
+        
+    }
+
+    
+    
+
+}

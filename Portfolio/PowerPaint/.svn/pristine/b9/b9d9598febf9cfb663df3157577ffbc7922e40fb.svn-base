@@ -1,0 +1,81 @@
+/**
+ * 
+ */
+package tools;
+
+import java.awt.Graphics2D;
+import java.awt.Point;
+import java.awt.geom.Rectangle2D;
+import java.util.List;
+
+/**
+ * 
+ * @author BlenderChild
+ * @version 1.2
+ */
+public class Rectangle extends AbstractTool {
+
+    /**
+     * Constructor for Rectangle tool.
+     */
+    public Rectangle() {
+        super('R');
+        // TODO Auto-generated constructor stub
+    }
+
+    /**
+     * @param theGraphics are the draw graphics.
+     * @param thePath is the path of the mouse.
+     * @param theStart is the starting point.
+     * @param theEnd is the ending point.
+     */
+    @Override
+    public void drawShape(final Graphics2D theGraphics,
+                          final Point theStart, final Point theEnd) {
+        if (calculateWidth(theEnd, theStart) >= 0 && calculateHeight(theEnd, theStart) >= 0) {
+            
+            theGraphics.draw(new Rectangle2D.Double(theStart.getX(), theStart.getY(), 
+                         calculateWidth(theEnd, theStart), calculateHeight(theEnd, theStart)));
+        
+        } else if (calculateWidth(theEnd, theStart) >= 0 
+                                                    && calculateHeight(theEnd, theStart) < 0) {
+            
+            theGraphics.draw(new Rectangle2D.Double(theStart.getX(), theEnd.getY(), 
+                                                              calculateWidth(theEnd, theStart),
+                                                 Math.abs(calculateHeight(theEnd, theStart))));
+        
+        } else if (calculateWidth(theEnd, theStart) < 0 
+                                                   && calculateHeight(theEnd, theStart) >= 0) {
+            
+            theGraphics.draw(new Rectangle2D.Double(theEnd.getX(), theStart.getY(), 
+                                                    Math.abs(calculateWidth(theEnd, theStart)),
+                                                           calculateHeight(theEnd, theStart)));
+        
+        } else {
+            
+            theGraphics.draw(new Rectangle2D.Double(theEnd.getX(), theEnd.getY(), 
+                                                    Math.abs(calculateWidth(theEnd, theStart)),
+                                                 Math.abs(calculateHeight(theEnd, theStart))));
+        }
+    }
+    
+    /**
+     * @param theEnd is the ending point.
+     * @param theStart is the starting point.
+     * 
+     * @return the Width.
+     */
+    private double calculateWidth(final Point theEnd, final Point theStart) {
+        return theEnd.getX() - theStart.getX();
+    }
+    
+    /**
+     * @param theEnd is the ending point.
+     * @param theStart is the starting point.
+     * 
+     * @return the Height.
+     */
+    private double calculateHeight(final Point theEnd, final Point theStart) {
+        return theEnd.getY() - theStart.getY();
+    }
+}

@@ -1,0 +1,26 @@
+/**
+ * 
+ */
+package tools;
+
+
+import java.awt.Graphics2D;
+import java.awt.Point;
+import java.util.List;
+
+/**
+ * @author Riley Gratzer
+ * @version 1.2
+ */
+public interface Tool {
+
+    /**
+     * Will draw a shape.
+     * 
+     * @param theGraphics a
+     * @param theStart a
+     * @param theEnd a
+     */
+    void drawShape(final Graphics2D theGraphics,
+                   Point theStart, Point theEnd);
+}

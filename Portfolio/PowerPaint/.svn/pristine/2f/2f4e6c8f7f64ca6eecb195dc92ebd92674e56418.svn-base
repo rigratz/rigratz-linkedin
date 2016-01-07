@@ -1,0 +1,14 @@
+package tools;
+
+import java.awt.Point;
+
+public class Line {
+
+    private Point myStartPoint;
+    private Point myEndPoint;
+    
+    public Line() {
+        // TODO Auto-generated constructor stub
+    }
+
+}

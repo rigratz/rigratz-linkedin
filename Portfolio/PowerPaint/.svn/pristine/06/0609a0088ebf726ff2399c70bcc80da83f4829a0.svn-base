@@ -1,0 +1,89 @@
+/**
+ * 
+ */
+package tools;
+
+import java.awt.Color;
+import java.awt.Point;
+import java.awt.Stroke;
+
+/**
+ * @author BlenderChild
+ * @version 1.2
+ */
+public class Picture {
+
+    /**
+     * 
+     */
+    private final Color myColor;
+    /**
+     * 
+     */
+    private final Stroke myStroke;
+    /**
+     * 
+     */
+    private final Point myStart;
+    /**
+     * 
+     */
+    private final Point myEnd;
+    /**
+     * 
+     */
+    private final Tool myTool;
+    /**
+     * @param theTool q
+     * @param theColor q
+     * @param theStroke q
+     * @param theStart q
+     * @param theEnd q
+     * 
+     */
+    public Picture(final Tool theTool, final Color theColor, final Stroke theStroke, 
+                   final Point theStart, final Point theEnd) {
+        myTool = theTool;
+        myColor = theColor;
+        myStroke = theStroke;      
+        myStart = theStart;
+        myEnd = theEnd;
+    }
+    /**
+     * 
+     * @return the color.
+     */
+    public Color getColor() {
+        return myColor;
+    }
+    /**
+     * 
+     * @return the stroke.
+     */
+    public Stroke getStroke() {
+        return myStroke;
+    }
+    /**
+     * 
+     * @return the start point.
+     */
+    public Point getStart() {
+        return myStart;
+    }
+    /**
+     * 
+     * @return the end point.
+     */
+    public Point getEnd() {
+        return myEnd;
+    }
+    /**
+     * 
+     * @return the tool.
+     */
+    public Tool getTool() {
+        return myTool;
+    }
+    
+
+}

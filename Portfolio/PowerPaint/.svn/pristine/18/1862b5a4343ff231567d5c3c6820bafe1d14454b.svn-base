@@ -1,0 +1,42 @@
+package tools;
+
+import java.awt.Graphics2D;
+import java.awt.Point;
+
+import java.awt.geom.Line2D;
+//import java.awt.geom.Path2D;
+import java.util.Iterator;
+import java.util.List;
+
+/**
+ * 
+ * @author Riley Gratzer
+ * @version 1.2
+ */
+public class Pencil extends AbstractTool {
+
+    /**
+     * Constructor of the Pencil tool.
+     */
+    public Pencil() {
+        super('P');
+        // TODO Auto-generated constructor stub
+    }
+
+    @Override
+    public void drawShape(final Graphics2D theGraphics,
+                          final Point theStart, final Point theEnd) {
+//        if (!thePath.isEmpty()) {
+//            final Iterator<Point> itr = thePath.iterator();
+//            Point p1 = itr.next();
+//            while (itr.hasNext()) {
+//                final Point p2 = itr.next();
+//                theGraphics.draw(new Line2D.Double(p1, p2));
+//                p1 = p2;
+//            }
+//        }
+
+    }
+
+
+}

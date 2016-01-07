@@ -1,0 +1,49 @@
+/**
+ * 
+ */
+package tools;
+
+import java.awt.Point;
+import java.util.List;
+
+/**
+ * @author BlenderChild
+ * @version 1.2
+ */
+public abstract class AbstractTool implements Tool {
+
+    /**
+     * 
+     */
+    private final char myLetter;
+    
+    /**
+     * @param theLetter is the letter.
+     */
+    public AbstractTool(final char theLetter) {
+        myLetter = theLetter;
+    }
+
+    /**
+     * 
+     * @return the letter.
+     */
+    public char getLetter() {
+        return myLetter;
+    }
+    /**
+     * @param thePath is the path.
+     * @return the starting point.
+     */
+    public Point getStart(final List<Point> thePath) {
+        return thePath.get(0);
+    }
+    
+    /**
+     * @param thePath is the path.
+     * @return the ending point.
+     */
+    public Point getEnd(final List<Point> thePath) {
+        return thePath.get(thePath.size() - 1);
+    }
+}

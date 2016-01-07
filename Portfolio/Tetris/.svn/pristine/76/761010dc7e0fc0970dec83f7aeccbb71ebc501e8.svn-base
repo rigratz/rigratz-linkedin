@@ -1,0 +1,165 @@
+package gui;
+
+
+
+
+import java.applet.Applet;
+import java.applet.AudioClip;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.GradientPaint;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Observable;
+import java.util.Observer;
+
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JApplet;
+import javax.swing.JFrame;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import javax.swing.JPanel;
+
+import javax.swing.Timer;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+import model.Board;
+import model.Board.GameStatus;
+import model.TetrisPiece;
+
+public class TetrisGUI implements ActionListener, Observer {
+
+    private final JFrame myFrame;
+    private final Board myBoard;
+    private final TetrisPanel myPanel;
+    private final Timer myTimer;
+    private final List myPieces;
+    private final NextPieceViewer myNextPieceViewer;
+    private ScorePanel myScorePanel;
+    private final JPanel myInfoPanel;
+    //private AudioClip myMusic;
+    
+    
+    public TetrisGUI() {
+        myFrame = new JFrame();
+        myBoard = new Board();
+        myTimer = new Timer(1000, this);
+        myPanel = new TetrisPanel(myBoard, myTimer);
+        myNextPieceViewer = new NextPieceViewer();
+        //myScorePanel = new ScorePanel();
+        
+
+        myScorePanel = new ScorePanel(myTimer);
+        myPieces = new ArrayList<TetrisPiece>();
+        myInfoPanel = createInfoPanel();
+        
+        URL url = getClass().getResource("tetris_theme.aif");
+        //myMusic = Applet.newAudioClip(url);
+//        myMusic.loop();
+        //System.out.println(url);
+    }
+
+    public void start() {
+        myFrame.addKeyListener(myPanel);
+        myFrame.setTitle("Tetris");
+        myFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        final GradientPaint bg = new GradientPaint(0, 0, Color.BLUE.darker(), 700, 700, Color.BLACK);
+        
+        createPieces(myPieces);
+
+        //myInfoPanel = createInfoPanel();
+        
+        final JMenuBar menuBar = new JMenuBar();
+        menuBar.add(fileMenu());
+        menuBar.add(helpMenu());
+        myFrame.setJMenuBar(menuBar);
+        myPanel.setPreferredSize(new Dimension(225, 500));
+        myFrame.setResizable(true);
+        myFrame.add(myPanel, BorderLayout.CENTER);
+        //myFrame.add(myNextPieceViewer, BorderLayout.EAST);
+        //myFrame.add(myScorePanel, BorderLayout.EAST);
+        myFrame.add(myInfoPanel, BorderLayout.EAST);
+        myFrame.add(new ControlsView(myPanel), BorderLayout.WEST);
+        myBoard.addObserver(this);
+        myBoard.addObserver(myPanel);
+        myBoard.addObserver(myNextPieceViewer);
+        myBoard.addObserver(myScorePanel);
+        
+        myBoard.setPieceSequence(myPieces);
+        myTimer.start();
+        myFrame.pack();
+        myFrame.setVisible(true);
+    }
+
+    private void createPieces(final List<TetrisPiece> thePieces) {
+        for (int i = 0; i < 1000; i++) {
+            thePieces.add(TetrisPiece.getRandomPiece());
+        }
+    }
+    private JPanel createInfoPanel() {
+        JPanel panel = new JPanel();
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+        panel.add(myNextPieceViewer);
+        panel.add(Box.createRigidArea(new Dimension(0, 10)));
+        
+        panel.add(myScorePanel);
+        panel.setPreferredSize(new Dimension(200, 200));
+        return panel;
+    }
+    private JMenu fileMenu() {
+        final JMenu menu = new JMenu("File");
+        menu.add(new JMenuItem("Start"));
+        menu.add(new JMenuItem("Exit"));
+        return menu;
+    }
+    private JMenu helpMenu() {
+        final JMenu menu = new JMenu("Help");
+        menu.add(new JMenuItem("Controls..."));
+        menu.add(new JMenuItem("Scoring Info..."));
+        menu.addSeparator();
+        menu.add(new JMenuItem("About..."));
+        return menu;
+    }
+    
+    @Override
+    public void update(Observable o, Object arg) {
+        if (arg instanceof GameStatus) {
+            myPanel.terminate(true);
+        }
+
+    }
+
+
+    @Override
+    public void actionPerformed(final ActionEvent theEvent) {
+        final Object source = theEvent.getSource();
+        if (source.equals(myTimer)) {
+            myBoard.step();
+        }
+        
+        //myPanel.repaint();       
+    }
+
+    
+}

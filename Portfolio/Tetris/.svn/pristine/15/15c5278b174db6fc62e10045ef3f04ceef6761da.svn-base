@@ -1,0 +1,274 @@
+package gui;
+
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.GradientPaint;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.awt.geom.Rectangle2D;
+import java.awt.geom.RoundRectangle2D;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Observable;
+import java.util.Observer;
+
+import javax.swing.JPanel;
+import javax.swing.Timer;
+
+import model.Board;
+import model.Board.BoardData;
+import model.MovableTetrisPiece;
+import model.TetrisPiece;
+
+/**
+ * 
+ * @author Riley Gratzer
+ * @version 1.0
+ */
+@SuppressWarnings("serial")
+public class TetrisPanel extends JPanel implements Observer, KeyListener {
+
+    /**
+     * 
+     */
+    private static final int SCALE = 20;
+    
+    /**
+     * 
+     */
+    private final Board myBoard;
+    
+    /**
+     * 
+     */
+    private List<Color[]> myData;
+    
+    /**
+     * 
+     */
+    private boolean myEnd;
+    
+
+    /**
+     * 
+     */
+    private final Controls myControls;
+    
+    /**
+     * 
+     */
+    private final Timer myTimer;
+    
+    private boolean myRunning;
+    
+    /**
+     * 
+     * @param theBoard is the game board.
+     */
+    public TetrisPanel(final Board theBoard, final Timer theTimer) {
+        super();
+        myBoard = theBoard;
+        addKeyListener(this);
+        myData = new ArrayList<Color[]>();
+        myEnd = false;
+        myControls = new Controls();
+        myTimer = theTimer;
+        myRunning = true;
+    }
+
+    @Override
+    public void paintComponent(final Graphics theGraphics) {
+        super.paintComponent(theGraphics);
+        final Graphics2D g = (Graphics2D) theGraphics;
+        final GradientPaint bg = new GradientPaint(0, 0, Color.BLUE.darker().darker(), 
+                                                   700, 700, Color.BLACK);
+        g.setPaint(bg);
+        g.fillRect(0, 0, 700, 700);
+        //setBackground(Color.BLUE.darker().darker());
+
+        //System.out.println(myGhost);
+        
+        if (!myEnd && myRunning) {
+            
+        
+            int x = 10;
+            int y = 10;
+            //GradientPaint gradient;
+            for (final Color[] ca: myData) {
+                for (final Color c: ca) {
+
+                    //redtowhite = new GradientPaint(0,0,color.RED,100, 0,color.WHITE);
+                    //g2.setPaint(redtowhite);
+                    
+                    if (c != null) {
+//                        gradient = new GradientPaint(x, y, c.brighter().brighter(), 
+//                                                    x + SCALE, y + SCALE, c.darker().darker());
+//                        gradient = new GradientPaint(x, y, c, 
+//                                                     x + SCALE, y + SCALE, c.darker().darker());
+                        g.setColor(c);
+                        g.fillRoundRect(x, y, SCALE, SCALE, 5, 5);
+                        g.setColor(Color.BLACK);
+                        g.drawRoundRect(x, y, SCALE, SCALE, 5, 5);
+                        
+                        g.setColor(Color.RED);
+                        g.drawRoundRect(x, y + SCALE * getGhostLine(myData), SCALE, SCALE, 5, 5);
+                    }    
+                    x += SCALE;
+                }
+                y += SCALE;
+                x = 10;
+            }
+            //y = 10;
+        } else {
+            g.setColor(Color.RED);
+            g.drawString("TERMINATED", 30, 50);
+        }
+        g.setStroke(new BasicStroke(5));
+        g.setColor(Color.RED.darker());
+        g.drawLine(10, 90, myBoard.getWidth() * SCALE + 10 , 90);
+        g.setColor(Color.GRAY);
+        g.draw(new Rectangle2D.Double(10, 10, myBoard.getWidth() * SCALE,
+                                                          myBoard.getHeight() * SCALE + 80));
+        
+        
+        
+
+    }
+    public int getGhostLine(final List<Color[]> myData2) {
+        int ghostLine = 0;
+        int count = 0;
+        for (final Color[] ca: myData2) {
+            for (final Color c: ca) {
+                if (c == null) {
+                    ghostLine = count;
+                    break;
+                } else {
+                    //ghostLine = count;
+                }
+                
+            }
+            count++;
+        }
+        return ghostLine;
+    }
+    
+    /**
+     * 
+     * @param theList is the list of color arrays for the board.
+     * @return the flipped board.
+     */
+    private List<Color[]> flipBoard(final List<Color[]> theList) {
+        final List<Color[]> copy = new ArrayList<Color[]>();
+        for (int i = theList.size() - 1; i >= 0; i--) {
+            copy.add(theList.get(i));
+        }
+        return copy;
+    }
+    
+    /**
+     * 
+     * @param theTerminator states whether the game is over or not.
+     */
+    public void terminate (final boolean theTerminator) {
+        myEnd = theTerminator;
+    }
+
+    private void pause() {
+        if (myRunning) {
+            myRunning = false;
+            myTimer.stop();
+            myControls.gamePaused();
+        } else {
+            myRunning = true;
+            myTimer.start();
+            myControls.defaultControls();
+        }
+        repaint();
+    }
+    /**
+     * 
+     * @return the game's controls.
+     */
+    public Controls getControls() {
+        return myControls;
+    }
+
+    /**
+     * 
+     */
+    @Override
+    public void update(Observable o, Object arg) {
+        if (arg instanceof BoardData) {
+            myData = ((BoardData) arg).getBoardData();
+            myData = flipBoard(myData);
+        }
+        repaint();
+        
+    }
+
+    /**
+     * 
+     */
+    @Override
+    public void keyTyped(final KeyEvent theEvent) {
+        //myBoard.left();
+
+        final int id = theEvent.getKeyChar();
+        //System.out.println("I typed something " + id);
+
+//        switch(id) {
+//                case 'z' : myBoard.rotateCCW(); break;
+//                case 'x' : myBoard.rotateCW(); break;
+//                default: break;
+//        }
+        if (myControls.getCCW() == id) {
+            myBoard.rotateCCW();
+        }
+        if (myControls.getCW() == id) {
+            myBoard.rotateCW();
+        }
+        
+    }
+
+    /**
+     * 
+     */
+    @Override
+    public void keyPressed(final KeyEvent theEvent) {
+        final int id = theEvent.getKeyCode();
+//        switch(id) {
+//            case KeyEvent.VK_LEFT: myBoard.left(); break;
+//            case KeyEvent.VK_RIGHT: myBoard.right(); break;
+//            case KeyEvent.VK_DOWN: myBoard.down(); break;
+//            default:
+//                break;
+//        }
+        if (myControls.getLeft() == id) {
+            myBoard.left();
+        }
+        if (myControls.getRight() == id) {
+            myBoard.right();
+        }
+        if (myControls.getDown() == id) {
+            myBoard.down();
+        }
+    }
+
+    /**
+     * 
+     */
+    @Override
+    public void keyReleased(final KeyEvent theEvent) {
+        final int id = theEvent.getKeyCode();
+
+        if (myControls.getPause() == id) {
+            pause();
+        }
+        if (myControls.getDrop() == id) {
+            myBoard.drop();
+        }
+    }
+
+}

@@ -1,0 +1,24 @@
+/**
+ * 
+ */
+package tools;
+
+/**
+ * @author BlenderChild
+ *
+ */
+public abstract class AbstractTool implements Tool {
+
+    private final char myLetter;
+    
+    /**
+     * 
+     */
+    public AbstractTool(final char theLetter) {
+        myLetter = theLetter;
+    }
+
+    public char getLetter() {
+        return myLetter;
+    }
+}

@@ -1,0 +1,656 @@
+package gui;
+
+
+import java.awt.BasicStroke;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Stroke;
+import java.awt.Toolkit;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.util.List;
+
+import javax.swing.AbstractAction;
+import javax.swing.Action;
+import javax.swing.ButtonGroup;
+import javax.swing.ImageIcon;
+import javax.swing.JColorChooser;
+import javax.swing.JFrame;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.JRadioButtonMenuItem;
+import javax.swing.JSlider;
+import javax.swing.JToggleButton;
+import javax.swing.JToolBar;
+import javax.swing.KeyStroke;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+
+import tools.Picture;
+
+/**
+ * This class is creates the GUI for the PowerPaint application.
+ * 
+ * @author Riley Gratzer
+ * @version 1.2
+ */
+public class PowerPaintGUI {
+
+    /**
+     * Screen width constant.
+     */
+    private static final Dimension SCREEN = Toolkit.getDefaultToolkit().getScreenSize();
+    
+    /**
+     * Constant used in centering the frame, which is achieved through halving the dimensions.
+     */
+    private static final int HALF = 2;
+    /**
+     * s.
+     */
+    private static final int SLIDER_SCALE = 5;
+    /**
+     * 
+     */
+    private static final int WIDTH = 400;
+    
+    /**
+     * 
+     */
+    private static final int HEIGHT = 200;
+    
+    /**
+     * 
+     */
+    private final Action myPencilAct;
+    /**
+     * 
+     */
+    private final Action myRectAct;
+    
+    /**
+     * 
+     */
+    private final Action myLineAct;
+    
+    /**
+     * 
+     */
+    private final Action myEllAct;
+    
+    /**
+     * 
+     */
+    private final JFrame myFrame;
+    
+    /**
+     * 
+     */
+    private final JMenuBar myMenuBar;
+    
+    /**
+     * 
+     */
+    private final JToolBar myToolBar;
+    
+    /**
+     * The panel to be drawn on.
+     */
+    private final DrawingPanel myPanel;
+    
+    /**
+     * The program's color chooser.
+     */
+    private final JColorChooser myColorChooser;
+    
+    /**
+     * 
+     */
+    private final Undoable myUndoables;
+    
+    private final JMenuItem myColorItem;
+    
+    
+    
+    /**
+     * Constructor of the GUI.
+     */
+    public PowerPaintGUI() {
+        myPencilAct = new PencilAction("Pencil", new ImageIcon("./images/pencil_bw.gif"),
+                                                                                KeyEvent.VK_P);
+        myLineAct = new LineAction("Line", new ImageIcon("./images/line_bw.gif"),
+                                                                                KeyEvent.VK_L);
+        myRectAct = new RectangleAction("Rectangle", 
+                                    new ImageIcon("./images/rectangle_bw.gif"), KeyEvent.VK_R);
+        myEllAct = new EllipseAction("Ellipse", new ImageIcon("./images/ellipse_bw.gif"), 
+                                                                                KeyEvent.VK_E);
+        myFrame = new JFrame();
+        myMenuBar = new JMenuBar();
+        myToolBar = makeToolBar();
+        
+        myColorItem = new JMenuItem("Color...", new ColorIcon(Color.BLACK));
+        myColorItem.addActionListener(new ColorAction());
+        myColorItem.setMnemonic(KeyEvent.VK_C);
+        
+        myUndoables = new Undoable();
+        myPanel = new DrawingPanel(myUndoables);
+        myColorChooser = new JColorChooser();
+    }
+
+    /**
+     * This method builds the GUI.
+     */
+    public void start() {
+        myFrame.setTitle("TCSS 305 Power Paint");
+        myFrame.setIconImage(new ImageIcon("./images/w.gif").getImage());
+        myFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        myMenuBar.add(fileMenu());
+        myMenuBar.add(optionsMenu());
+        myMenuBar.add(toolsMenu());
+        myMenuBar.add(helpMenu());
+        //final JMenuItem color = new JMenuItem("Color...", new ColorIcon(Color.BLACK));
+//        color.addActionListener(new ColorAction());
+//        color.setMnemonic(KeyEvent.VK_C);
+        myMenuBar.add(myColorItem);
+        
+        myFrame.setJMenuBar(myMenuBar);
+        myFrame.add(myToolBar, BorderLayout.SOUTH);
+
+        myPanel.setPreferredSize(new Dimension(WIDTH, HEIGHT));
+        myFrame.add(myPanel, BorderLayout.CENTER);
+             
+        myFrame.pack();
+        myFrame.setLocation(SCREEN.width / HALF - myFrame.getWidth() / HALF, 
+                            SCREEN.height / HALF - myFrame.getHeight() / HALF);
+        myFrame.setVisible(true);
+    }
+    
+    /**
+     * This method creates the File drop menu.
+     * 
+     * @return the File menu.
+     */
+    private JMenu fileMenu() {
+        final JMenu menu = new JMenu("File");
+        menu.setMnemonic(KeyEvent.VK_F);
+
+        final JMenuItem exit = new JMenuItem("Exit");
+        exit.setMnemonic(KeyEvent.VK_X);
+        exit.addActionListener(new ExitAction());
+
+        menu.add(myUndoables.getUndoAll());
+        menu.add(myUndoables.getUndo());
+        menu.add(myUndoables.getRedo());
+        menu.addSeparator();
+        menu.add(exit);
+        
+        
+        
+        return menu;
+        
+    }
+    
+    /**
+     * This method creates the Options drop menu.
+     * 
+     * @return the Options menu.
+     */
+    private JMenu optionsMenu() {
+        final JMenu menu = new JMenu("Options");
+        menu.setMnemonic(KeyEvent.VK_O);
+        final JRadioButtonMenuItem grid = new JRadioButtonMenuItem(new GridAction("Grid", 
+                                                                               KeyEvent.VK_G));
+        final JMenu thick = new JMenu("Thickness");
+        thick.setMnemonic(KeyEvent.VK_T);
+        final JSlider slide = new JSlider(0, 20, 1);
+        slide.setMajorTickSpacing(SLIDER_SCALE);
+        slide.setMinorTickSpacing(1);
+        slide.setPaintTicks(true);
+        slide.setPaintLabels(true);
+        slide.createStandardLabels(SLIDER_SCALE, 0);
+        slide.addChangeListener(new SliderAction());
+        thick.add(new JMenuItem().add(slide));
+        
+        menu.add(grid);
+        menu.add(thick);
+        
+        return menu;
+        
+    }
+    
+    /**
+     * This method creates the Tools drop menu.
+     * 
+     * @return the Tools menu.
+     */
+    private JMenu toolsMenu() {
+        final JMenu menu = new JMenu("Tools");
+        menu.setMnemonic(KeyEvent.VK_T);
+        final ButtonGroup tools = new ButtonGroup();
+        final JRadioButtonMenuItem pencil = new JRadioButtonMenuItem(myPencilAct);
+        final JRadioButtonMenuItem line = new JRadioButtonMenuItem(myLineAct);
+        final JRadioButtonMenuItem rectangle = new JRadioButtonMenuItem(myRectAct);
+        final JRadioButtonMenuItem ellipse = new JRadioButtonMenuItem(myEllAct);
+
+        tools.add(pencil);
+        tools.add(line);
+        tools.add(rectangle);
+        tools.add(ellipse);
+
+        menu.add(pencil);
+        menu.add(line);
+        menu.add(rectangle);
+        menu.add(ellipse);
+        
+        return menu;
+        
+    }
+    
+    /**
+     * This method creates the Help drop menu.
+     * 
+     * @return the Help menu.
+     */
+    private JMenu helpMenu() {
+        final JMenu menu = new JMenu("Help");
+        menu.setMnemonic('H');
+        final JMenuItem about = new JMenuItem("About...");
+        about.setMnemonic('A');
+        about.addActionListener(new AboutAction());
+        menu.add(about);
+        
+        return menu;
+        
+    }
+    
+    /**
+     * This method creates the ToolBar.
+     * 
+     * @return the ToolBar.
+     */
+    private JToolBar makeToolBar() {
+        final JToolBar toolBar = new JToolBar();
+
+        final JToggleButton pencil = new JToggleButton(myPencilAct);
+        final JToggleButton line = new JToggleButton(myLineAct);
+        final JToggleButton rectangle = new JToggleButton(myRectAct);
+        final JToggleButton ellipse = new JToggleButton(myEllAct);
+        
+        final ButtonGroup tools = new ButtonGroup();
+        tools.add(pencil);
+        tools.add(line);
+        tools.add(rectangle);
+        tools.add(ellipse);
+        
+        toolBar.add(pencil);
+        toolBar.add(line);
+        toolBar.add(rectangle);
+        toolBar.add(ellipse);
+        return toolBar;
+    }
+
+/*
+ * 
+ *                  ALL INNER CLASSES AND LISTENERS BELOW
+ * 
+ */
+    
+    /**
+     * This class creates the listener for the Color menu item.
+     * 
+     * @author Riley Gratzer
+     */
+    class ColorAction implements ActionListener {
+
+        @Override
+        public void actionPerformed(final ActionEvent theE) {
+            final Color newColor = JColorChooser.showDialog(myColorChooser,
+                                                      "Choose Background Color", Color.BLACK);
+            myPanel.setColor(newColor);
+            myColorItem.setIcon(new ColorIcon(newColor));
+            
+        }
+        
+    }
+    /**
+     * This class creates the listener for the thickness slider.
+     * 
+     * @author Riley Gratzer
+     */
+    class SliderAction implements ChangeListener {
+
+        @Override
+        public void stateChanged(final ChangeEvent theE) {
+            final JSlider source = (JSlider) theE.getSource();
+            final Stroke newStroke = new BasicStroke(source.getValue());
+            
+            myPanel.setStroke(newStroke);
+            
+        }
+        
+    }
+    
+    /**
+     * This class creates the listener for the Exit menu item.
+     * 
+     * @author Riley Gratzer
+     */
+    class ExitAction implements ActionListener {
+
+        @Override
+        public void actionPerformed(final ActionEvent theE) {
+            System.exit(0);
+            
+        }
+        
+    }
+    
+    /**
+     * This class creates the listener for the Undo all changes menu item.
+     * 
+     * @author Riley Gratzer
+     */
+    class UndoAllAction implements ActionListener {
+
+        @Override
+        public void actionPerformed(final ActionEvent theE) {
+            myPanel.undoAll();
+            myUndoables.getUndoAll().setEnabled(false);
+            myUndoables.getUndo().setEnabled(false);
+            myUndoables.getRedo().setEnabled(false);
+        }
+        
+    }
+    
+    /**
+     * This class creates the listener for the Undo menu item.
+     * 
+     * @author Riley Gratzer
+     */
+    class UndoAction implements ActionListener {
+
+        @Override
+        public void actionPerformed(final ActionEvent theE) {
+            final List<Picture> list = myPanel.getPictures();
+            final List<Picture> redoList = myPanel.getRedoables();
+            redoList.add(list.get(list.size() - 1));
+            list.remove(list.size() - 1);
+            myUndoables.getRedo().setEnabled(true);
+            if (list.isEmpty()) {
+                myUndoables.getUndo().setEnabled(false);
+                myUndoables.getUndoAll().setEnabled(false);
+            }
+            myPanel.repaint();
+        }
+        
+    }
+    /**
+     * This class creates the listener for the Redo menu item.
+     * 
+     * @author Riley Gratzer
+     */
+    class RedoAction implements ActionListener {
+
+        @Override
+        public void actionPerformed(final ActionEvent theE) {
+            final List<Picture> list = myPanel.getPictures();
+            final List<Picture> redoList = myPanel.getRedoables();
+            list.add(redoList.get(redoList.size() - 1));
+            redoList.remove(redoList.size() - 1);
+            myUndoables.getUndo().setEnabled(true);
+            if (redoList.isEmpty()) {
+                myUndoables.getRedo().setEnabled(false);
+            }
+            myPanel.repaint();
+        }
+        
+    }
+    
+    /**
+     * This class creates the listener for the About menu item.
+     * 
+     * @author Riley Gratzer
+     */
+    class AboutAction implements ActionListener {
+
+        @Override
+        public void actionPerformed(final ActionEvent theE) {
+            JOptionPane.showMessageDialog(null, "PowerPaint draws lines and stuff.", 
+                                   "About PowerPaint", JOptionPane.ERROR_MESSAGE);
+        }
+        
+    }
+    
+    /**
+     * hh.
+     * @author Riley Gratzer
+     * @version 1.2
+     */
+    @SuppressWarnings("serial")
+    class GridAction extends AbstractAction {
+
+        /**
+         * 
+         * @param theName n
+         * @param theMnemonic m
+         */
+        public GridAction(final String theName,
+                            final Integer theMnemonic) {
+            super(theName);
+            putValue(MNEMONIC_KEY, theMnemonic);
+            putValue(SELECTED_KEY, Boolean.FALSE);
+        }
+        @Override
+        public void actionPerformed(final ActionEvent theE) {
+            if (myPanel.isGrid()) {
+                myPanel.enableGrid(false);
+                putValue(SELECTED_KEY, Boolean.FALSE);
+            } else {
+                myPanel.enableGrid(true);
+                putValue(SELECTED_KEY, Boolean.TRUE);
+            }                   
+        }
+    }
+    
+    /**
+     * hh.
+     * @author Riley Gratzer
+     * @version 1.2
+     */
+    @SuppressWarnings("serial")
+    class PencilAction extends AbstractAction {
+
+        /**
+         * 
+         * @param theName n
+         * @param theIcon i
+         * @param theMnemonic m
+         */
+        public PencilAction(final String theName, final ImageIcon theIcon,
+                            final Integer theMnemonic) {
+            super(theName, theIcon);
+            putValue(MNEMONIC_KEY, theMnemonic);
+            putValue(SELECTED_KEY, Boolean.TRUE);
+        }
+        @Override
+        public void actionPerformed(final ActionEvent theE) {
+            myPanel.setTool(DrawingPanel.PENCIL);
+            putValue(SELECTED_KEY, Boolean.TRUE);
+            
+        }
+        
+    }
+    /**
+     * 
+     * @author Riley Gratzer
+     *
+     */
+    @SuppressWarnings("serial")
+    class LineAction extends AbstractAction {
+
+        /**
+         * 
+         * @param theName n
+         * @param theIcon i
+         * @param theMnemonic m
+         */
+        public LineAction(final String theName, final ImageIcon theIcon,
+                          final Integer theMnemonic) {
+            super(theName, theIcon);
+            putValue(MNEMONIC_KEY, theMnemonic);
+            putValue(SELECTED_KEY, Boolean.FALSE);
+        }
+        @Override
+        public void actionPerformed(final ActionEvent theE) {
+            myPanel.setTool(DrawingPanel.LINE);
+            putValue(SELECTED_KEY, Boolean.TRUE);
+            
+        }
+        
+    }
+    /**
+     * 
+     * @author Riley Gratzer
+     *
+     */
+    @SuppressWarnings("serial")
+    class RectangleAction extends AbstractAction {
+
+        /**
+         * 
+         * @param theName n
+         * @param theIcon i
+         * @param theMnemonic m
+         */
+        public RectangleAction(final String theName, final ImageIcon theIcon,
+                               final Integer theMnemonic) {
+            super(theName, theIcon);
+            putValue(MNEMONIC_KEY, theMnemonic);
+            putValue(SELECTED_KEY, Boolean.FALSE);
+        }
+        @Override
+        public void actionPerformed(final ActionEvent theE) {
+            myPanel.setTool(DrawingPanel.RECTANGLE);
+            putValue(SELECTED_KEY, Boolean.TRUE);
+            
+        }
+        
+    }
+    /**
+     * 
+     * @author Riley Gratzer
+     *
+     */
+    @SuppressWarnings("serial")
+    class EllipseAction extends AbstractAction {
+
+        /**
+         * 
+         * @param theName n
+         * @param theIcon i
+         * @param theMnemonic m
+         */
+        public EllipseAction(final String theName, final ImageIcon theIcon,
+                             final Integer theMnemonic) {
+            super(theName, theIcon);
+            putValue(MNEMONIC_KEY, theMnemonic);
+            putValue(SELECTED_KEY, Boolean.FALSE);
+        }
+        @Override
+        public void actionPerformed(final ActionEvent theE) {
+            myPanel.setTool(DrawingPanel.ELLIPSE);
+            putValue(SELECTED_KEY, Boolean.TRUE);
+            
+        }
+        
+    }
+    /**
+     * 
+     * @author Riley Gratzer
+     * @version 1.2
+     */
+    class Undoable {
+        /**
+         * 
+         */
+        private final JMenuItem myUndoAll;
+        /**
+         * 
+         */
+        private final JMenuItem myUndo;
+        /**
+         * 
+         */
+        private final JMenuItem myRedo;
+        /**
+         * 
+         */
+        public Undoable() {
+            myUndoAll = createUndoAll();
+            myUndo = createUndo();
+            myRedo = createRedo();
+        }
+        /**
+         * 
+         * @return the created undo all menu item.
+         */
+        private JMenuItem createUndoAll() {
+            final JMenuItem undo = new JMenuItem("Undo all changes");
+            undo.setMnemonic(KeyEvent.VK_U);
+            undo.setEnabled(false);
+            undo.addActionListener(new UndoAllAction());
+            return undo;
+        }
+        /**
+         * 
+         * @return the created undo menu item.
+         */
+        private JMenuItem createUndo() {
+            final JMenuItem undo = new JMenuItem("Undo");
+            undo.setMnemonic(KeyEvent.VK_N);
+            final KeyStroke ctrlZKeyStroke = KeyStroke.getKeyStroke("control Z");
+            undo.setAccelerator(ctrlZKeyStroke);
+            undo.setEnabled(false);
+            undo.addActionListener(new UndoAction());
+            return undo;
+        }
+        /**
+         * 
+         * @return the created redo menu item.
+         */
+        private JMenuItem createRedo() {
+            final JMenuItem redo = new JMenuItem("Redo");
+            redo.setMnemonic(KeyEvent.VK_R);
+            final KeyStroke ctrlYKeyStroke = KeyStroke.getKeyStroke("control Y");
+            redo.setAccelerator(ctrlYKeyStroke);
+            redo.setEnabled(false);
+            redo.addActionListener(new RedoAction());
+            return redo;
+        }
+        /**
+         * 
+         * @return the undo all menu item.
+         */
+        public JMenuItem getUndoAll() {
+            return myUndoAll;
+        }
+        /**
+         * 
+         * @return the undo menu item.
+         */
+        public JMenuItem getUndo() {
+            return myUndo;
+        }
+        /**
+         * 
+         * @return the redo menu item.
+         */
+        public JMenuItem getRedo() {
+            return myRedo;
+        }
+    }
+}

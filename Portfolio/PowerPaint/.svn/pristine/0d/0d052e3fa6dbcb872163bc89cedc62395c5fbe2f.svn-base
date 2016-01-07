@@ -1,0 +1,80 @@
+package tools;
+
+import java.awt.Graphics2D;
+import java.awt.Point;
+import java.awt.geom.Ellipse2D;
+import java.util.List;
+
+
+/**
+ * 
+ * @author BlenderChild
+ * @version 1.2
+ */
+public class Ellipse extends AbstractTool {
+
+    /**
+     * Constructor of Ellipse tool.
+     */
+    public Ellipse() {
+        super('E');
+        // TODO Auto-generated constructor stub
+    }
+
+    /**
+     * @param theGraphics are the draw graphics.
+     * @param thePath is a set of points.
+     */
+    @Override
+    public void drawShape(final Graphics2D theGraphics, final List<Point> thePath) {
+        final Point start = getStart(thePath);
+        final Point end = getEnd(thePath);
+        if (calculateWidth(end, start) >= 0 && calculateHeight(end, start) >= 0) {
+            
+            theGraphics.draw(new Ellipse2D.Double(start.getX(), start.getY(), 
+                                                              calculateWidth(end, start),
+                                                           calculateHeight(end, start)));
+        
+        } else if (calculateWidth(end, start) >= 0 
+                                                    && calculateHeight(end, start) < 0) {
+            
+            theGraphics.draw(new Ellipse2D.Double(start.getX(), end.getY(), 
+                                                             calculateWidth(end, start),
+                                                 Math.abs(calculateHeight(end, start))));
+        
+        } else if (calculateWidth(end, start) < 0 
+                                                  && calculateHeight(end, start) >= 0) {
+            
+            theGraphics.draw(new Ellipse2D.Double(end.getX(), start.getY(), 
+                                                    Math.abs(calculateWidth(end, start)),
+                                                           calculateHeight(end, start)));
+
+        } else {
+            
+            theGraphics.draw(new Ellipse2D.Double(end.getX(), end.getY(), 
+                                                    Math.abs(calculateWidth(end, start)),
+                                                 Math.abs(calculateHeight(end, start))));
+        }
+    }
+    
+    /**
+     * @param theEnd is the ending point.
+     * @param theStart is the starting point.
+     * 
+     * @return the Width.
+     */
+    private double calculateWidth(final Point theEnd, final Point theStart) {
+        return theEnd.getX() - theStart.getX();
+    }
+    
+    /**
+     * @param theEnd is the ending point.
+     * @param theStart is the starting point.
+     * 
+     * @return the Height.
+     */
+    private double calculateHeight(final Point theEnd, final Point theStart) {
+        return theEnd.getY() - theStart.getY();
+    }
+
+}

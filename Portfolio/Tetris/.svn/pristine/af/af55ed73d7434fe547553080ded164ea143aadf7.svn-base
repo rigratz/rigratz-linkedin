@@ -1,0 +1,191 @@
+/*
+ * TCSS 305
+ * 
+ * Final Assignment - Tetris
+ */
+
+package gui;
+
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.GradientPaint;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.util.Observable;
+import java.util.Observer;
+
+import javax.swing.JPanel;
+import javax.swing.Timer;
+
+import model.Board.CompletedLines;
+
+/**
+ * This creates a panel to view Tetris game score information.
+ * 
+ * @author Riley Gratzer
+ * @version 1.0
+ */
+@SuppressWarnings("serial")
+public class ScorePanel extends JPanel implements Observer {
+
+    /**
+     * A spacer used for positioning.
+     */
+    private static final int SPACER = 10;
+    
+    /**
+     * Points for clearing one line.
+     */
+    private static final int ONE_LINE = 40;
+    
+    /**
+     * Points for clearing two lines.
+     */
+    private static final int TWO_LINES = 100;
+    
+    /**
+     * Points for clearing three lines.
+     */
+    private static final int THREE_LINES = 300;
+    
+    /**
+     * Points for clearing four lines.
+     */
+    private static final int FOUR_LINES = 1200;
+    
+    /**
+     * Amount to decrement the timer delay upon level increase.
+     */
+    private static final int SPEED_UP = 100;
+    
+    /**
+     * Number of lines to clear before leveling up.
+     */
+    private static final int LEVEL_UP = 10;
+    
+    /**
+     * The number of lines cleared.
+     */
+    private int myLines;
+    
+    /**
+     * The current game level.
+     */
+    private int myLevel;
+    
+    /**
+     * The player's score.
+     */
+    private long myScore;
+    
+    /**
+     * The game's timer.
+     */
+    private final Timer myTimer;
+    
+    /**
+     * Constructor of the Score Panel.
+     * 
+     * @param theTimer is the game's timer.
+     */
+    public ScorePanel(final Timer theTimer) {
+        super();
+        myLines = 0;
+        myLevel = 1;
+        myScore = 0;
+        myTimer = theTimer;
+    }
+
+    /**
+     * Paints the score panel.
+     * 
+     * @param theGraphics is the program's graphics.
+     */
+    @Override
+    public void paintComponent(final Graphics theGraphics) {
+        super.paintComponent(theGraphics);
+        final Graphics2D g = (Graphics2D) theGraphics;
+        
+        final Dimension size = this.getSize();
+        //final int scale = getScale(size.getHeight());
+        
+        final GradientPaint bg = new GradientPaint(0, 0, Color.GREEN.darker().darker(), 
+                                   (int) size.getWidth(), (int) size.getHeight(), Color.BLACK);
+        
+        g.setPaint(bg);
+        g.fillRect(0, 0, (int) size.getWidth(), (int) size.getHeight());
+        
+        g.setColor(Color.WHITE);
+        int y = SPACER;
+        
+        g.drawString("Level: " + myLevel, SPACER, y);
+        y += SPACER * 2;
+        
+        g.drawString("Lines: " + myLines, SPACER, y);
+        y += SPACER * 2;
+        
+        g.drawString("Score: " + myScore, SPACER, y);
+    }
+    
+    /**
+     * 
+     */
+    protected void initialScore() {
+        myLines = 0;
+        myLevel = 1;
+        myScore = 0;
+    }
+    
+    /**
+     * Determines player's level.
+     * 
+     * @param theIncrease whether to increase or not.
+     */
+    public void levelUp(final boolean theIncrease) {
+        if (theIncrease) {
+            myLevel++;
+        }
+    }
+    /**
+     * Increases the score based on number of lines cleared.
+     * 
+     * @param theLines are the newly cleared lines.
+     */
+    public void scoreUp(final int theLines) {
+
+        /*
+         * 3 and 4 are magic numbers, but left in since their meaning is very obvious.
+         * They are used to determine how many lines were cleared so the score increases
+         * accordingly.
+         */
+        if (theLines == 1) {
+            myScore += ONE_LINE * myLevel;
+        } else if (theLines == 2) {
+            myScore += TWO_LINES * myLevel;
+        } else if (theLines == 3) {
+            myScore += THREE_LINES * myLevel;
+        } else if (theLines == 4) {
+            myScore += FOUR_LINES * myLevel;
+        }
+       
+        myLevel = myLines / LEVEL_UP + 1;
+        if (myTimer.getDelay() > SPEED_UP) {
+            myTimer.setDelay(TetrisGUI.INITIAL_DELAY - (SPEED_UP * myLevel));
+        }
+    }
+
+    /**
+     * Updates the score when notified by an observable passing completed lines.
+     * 
+     * @param theO is the observable.
+     * @param theArg is the data being passed by the observable.
+     */
+    @Override
+    public void update(final Observable theO, final Object theArg) {
+        if (theArg instanceof CompletedLines) {
+            myLines += ((CompletedLines) theArg).getCompletedLines().size();
+            scoreUp(((CompletedLines) theArg).getCompletedLines().size());
+        }
+        repaint();
+    }
+}

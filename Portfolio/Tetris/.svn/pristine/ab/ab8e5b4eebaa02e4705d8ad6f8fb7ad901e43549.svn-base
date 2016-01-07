@@ -1,0 +1,319 @@
+/*
+ * TCSS 305
+ * 
+ * Final Assignment - Tetris
+ */
+
+package gui;
+
+
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.WindowEvent;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Observable;
+import java.util.Observer;
+
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JCheckBoxMenuItem;
+import javax.swing.JFrame;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.Timer;
+
+import model.Board;
+import model.Board.GameStatus;
+import model.TetrisPiece;
+
+/**
+ * This class creates the GUI for playing Tetris.
+ * 
+ * @author Riley Gratzer
+ * @version 1.0
+ */
+public class TetrisGUI implements ActionListener, Observer {
+
+    /**
+     * Timer's initial delay.
+     */
+    public static final int INITIAL_DELAY = 1000;
+    
+    /**
+     * Number of random pieces to create.
+     */
+    private static final int NUM_OF_PIECES = 10000;
+    
+    /**
+     * Initial dimension of info Box.
+     */
+    private static final Dimension BOX_DIMENSION = new Dimension(200, 480);
+    
+    /**
+     * The frame containing the GUI elements of Tetris.
+     */
+    private final JFrame myFrame;
+    
+    /**
+     * The game's board.
+     */
+    private Board myBoard;
+    
+    /**
+     * The panel to draw the game board.
+     */
+    private final TetrisPanel myPanel;
+    
+    /**
+     * The game's timer.
+     */
+    private final Timer myTimer;
+    
+    /**
+     * The list of TetrisPieces for the game.
+     */
+    private final List<TetrisPiece> myPieces;
+    
+    /**
+     * 
+     */
+    private final NextPieceViewer myNextPieceViewer;
+    
+    /**
+     * The game's score panel.
+     */
+    private final ScorePanel myScorePanel;
+    
+    /**
+     * The game's information stored in a box.
+     */
+    private final Box myInfoBox;
+    
+    /**
+     * 
+     */
+    private final JMenuBar myMenuBar;
+    
+    /**
+     * 
+     */
+    private final JMenuItem myStart;
+    
+    /**
+     * 
+     */
+    private final HoldPieceViewer myHoldViewer;
+    
+    /**
+     * The game's controls.
+     */
+    private final Controls myControls;
+    
+    
+    
+    /**
+     * Constructor of the TetrisGUI.
+     */
+    public TetrisGUI() {
+        myFrame = new JFrame();
+        myBoard = new Board();
+        myTimer = new Timer(INITIAL_DELAY, this);
+        myControls = new Controls();
+        myPanel = new TetrisPanel(myBoard, myTimer, myControls);
+        myNextPieceViewer = new NextPieceViewer();
+        myScorePanel = new ScorePanel(myTimer);
+        myPieces = new ArrayList<TetrisPiece>();
+        myStart = new JMenuItem("Start");
+        myHoldViewer = new HoldPieceViewer();
+        myInfoBox = createInfoBox();
+        myMenuBar = createMenuBar();
+ 
+    }
+
+    /**
+     * Forms the GUI and starts the game.
+     */
+    public void start() {
+        myFrame.addKeyListener(myPanel);
+        myFrame.setTitle("Tetris");
+        myFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        
+        
+        myFrame.setJMenuBar(myMenuBar);
+        
+        myFrame.setResizable(true);
+        
+        myFrame.add(myPanel, BorderLayout.CENTER);
+        myFrame.add(myInfoBox, BorderLayout.EAST);
+
+        myFrame.pack();
+        myFrame.setMinimumSize(new Dimension(myFrame.getWidth(), myFrame.getHeight()));
+        myFrame.setVisible(true);
+    }
+
+    /**
+     * Creates 10000 pieces for the game.
+     * 
+     * @param thePieces might not be needed?
+     */
+    private void createPieces(final List<TetrisPiece> thePieces) {
+        for (int i = 0; i < NUM_OF_PIECES; i++) {
+            thePieces.add(TetrisPiece.getRandomPiece());
+        }
+    }
+    
+    /**
+     * Creates a board to play Tetris.
+     * 
+     */
+    protected void createBoard() {
+        myBoard = new Board();
+        myPanel.newGameBoard(myBoard);
+        myBoard.addObserver(this);
+        myBoard.addObserver(myPanel);
+        myBoard.addObserver(myNextPieceViewer);
+        myBoard.addObserver(myScorePanel);
+        myBoard.addObserver(myHoldViewer);
+        createPieces(myPieces);
+        myBoard.setPieceSequence(myPieces);
+    }
+    
+    /**
+     * 
+     */
+    private JMenuBar createMenuBar() {
+        final JMenuBar menuBar = new JMenuBar();
+        menuBar.add(fileMenu());
+        menuBar.add(variantsMenu());
+        menuBar.add(helpMenu());
+        return menuBar;
+    }
+    /**
+     * Creates the box with Score and next piece information.
+     *  
+     * @return the info box.
+     */
+    private Box createInfoBox() {
+        final Box infoBox = new Box(BoxLayout.Y_AXIS);
+        infoBox.setBackground(Color.BLUE);
+        infoBox.add(myNextPieceViewer);
+        
+        infoBox.add(myHoldViewer);
+        
+        infoBox.add(Box.createVerticalGlue());
+        
+        final ControlPanel c = new ControlPanel();
+        infoBox.add(c);
+        
+        infoBox.add(myScorePanel);
+        infoBox.setPreferredSize(BOX_DIMENSION);
+        return infoBox;
+    }
+    
+    /**
+     * Creates the File JMenu.
+     * 
+     * @return the File menu.
+     */
+    private JMenu fileMenu() {
+        final JMenu menu = new JMenu("File");
+        //final JMenuItem start = new JMenuItem("Start");
+        myStart.addActionListener(new ActionListener() {
+            public void actionPerformed(final ActionEvent theEvent) {
+                final boolean tempTread = myBoard.isTreadmill();
+
+                createBoard();
+                
+                if (tempTread) {
+                    myBoard.toggleTreadmill();
+                }
+               
+                
+                myControls.defaultControls();
+                myScorePanel.initialScore();
+                myHoldViewer.removePiece();
+                myPanel.repaint();
+                myTimer.setDelay(INITIAL_DELAY);
+                myTimer.start();
+                myStart.setEnabled(false);
+            }
+        });
+        menu.add(myStart);
+        
+        final JMenuItem exit = new JMenuItem("Exit");
+        exit.addActionListener(new ActionListener() {
+            public void actionPerformed(final ActionEvent theEvent) {
+                myFrame.dispatchEvent(new WindowEvent(myFrame, WindowEvent.WINDOW_CLOSING));
+            }
+        });
+        menu.add(exit);
+        return menu;
+    }
+    
+    /**
+     * Creates the Variants JMenu.
+     * 
+     * @return the Variants menu.
+     */
+    private JMenu variantsMenu() {
+        final JMenu menu = new JMenu("Variants");
+        final JCheckBoxMenuItem tread = new JCheckBoxMenuItem("Treadmill");
+        tread.addActionListener(new ActionListener() {
+            public void actionPerformed(final ActionEvent theEvent) {
+                myBoard.toggleTreadmill();
+            }
+        });
+        menu.add(tread);
+        
+        final JCheckBoxMenuItem reverse = new JCheckBoxMenuItem("Reverse Gravity");
+        reverse.addActionListener(new ActionListener() {
+            public void actionPerformed(final ActionEvent theEvent) {
+                myPanel.toggleFlip();
+            }
+        });
+        menu.add(reverse);
+        return menu;
+    }
+    /**
+     * Creates the Help JMenu.
+     * 
+     * @return the help menu.
+     */
+    private JMenu helpMenu() {
+        final JMenu menu = new JMenu("Help");
+        menu.add(new JMenuItem("Scoring Info..."));
+        menu.addSeparator();
+        menu.add(new JMenuItem("About..."));
+        return menu;
+    }
+    
+    /**
+     * Updates the next piece when notified by an observable passing a GameStatus.
+     * 
+     * @param theO is the observable.
+     * @param theArg is the data being passed by the observable.
+     */
+    @Override
+    public void update(final Observable theO, final Object theArg) {
+        if (theArg instanceof GameStatus) {
+            //myPanel.terminate(false);
+            myTimer.stop();
+            myStart.setEnabled(true);
+            JOptionPane.showMessageDialog(myFrame, "Game Over. Bummer, dude.");
+        }
+    }
+
+    @Override
+    public void actionPerformed(final ActionEvent theEvent) {
+        final Object source = theEvent.getSource();
+        if (source.equals(myTimer)) {
+            myBoard.step();
+        }
+    }
+}

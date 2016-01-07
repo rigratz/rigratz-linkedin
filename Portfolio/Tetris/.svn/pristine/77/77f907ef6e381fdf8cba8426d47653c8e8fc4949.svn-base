@@ -1,0 +1,224 @@
+package gui;
+
+import java.awt.event.KeyEvent;
+
+import javax.swing.JDialog;
+
+/**
+ * Class containing the game's controls.
+ * 
+ * @author Riley Gratzer
+ * @version 1.0
+ */
+
+public class Controls {
+
+    /**
+     * 
+     */
+    private int myLeft;
+    
+    /**
+     * 
+     */
+    private int myRight;
+    
+    /**
+     * 
+     */
+    private int myDown;
+    
+    /**
+     * 
+     */
+    private int myDrop;
+    
+    /**
+     * 
+     */
+    private int myCCW;
+    
+    /**
+     * 
+     */
+    private int myCW;
+    
+    /**
+     * 
+     */
+    private int myHold;
+    
+    /**
+     * 
+     */
+    private int myPause;
+    
+    /**
+     * Constructor sets default controls.
+     */
+    public Controls() {
+        defaultControls();
+    }
+    
+/*
+ * Public Get methods.
+ */
+    
+    /**
+     * 
+     * @return
+     */
+    public int getLeft() {
+        return myLeft;
+    }
+    
+    /**
+     * 
+     * @return
+     */
+    public int getRight() {
+        return myRight;
+    }
+    
+    /**
+     * 
+     * @return
+     */
+    public int getDown() {
+        return myDown;
+    }
+    
+    /**
+     * 
+     * @return
+     */
+    public int getDrop() {
+        return myDrop;
+    }
+    
+    /**
+     * 
+     * @return
+     */
+    public int getCCW() {
+        return myCCW;
+    }
+    
+    /**
+     * 
+     * @return
+     */
+    public int getCW() {
+        return myCW;
+    }
+    
+    /**
+     * 
+     * @return
+     */
+    public int getHold() {
+        return myHold;
+    }
+    
+    /**
+     * 
+     * @return
+     */
+    public int getPause() {
+        return myPause;
+    }
+
+/*
+ * Public Set methods.
+ */
+    
+    /**
+     * 
+     * @param theLeft
+     */
+    public void setLeft(final int theLeft) {
+        myLeft = theLeft;
+    }
+    
+    /**
+     * 
+     * @param theRight
+     */
+    public void setRight(final int theRight) {
+        myRight = theRight;
+    }
+    
+    /**
+     * 
+     * @param theDown
+     */
+    public void setDown(final int theDown) {
+        myDown = theDown;
+    }
+    
+    /**
+     * 
+     * @param theDrop
+     */
+    public void setDrop(final int theDrop) {
+        myDrop = theDrop;
+    }
+    
+    /**
+     * 
+     * @param theCCW
+     */
+    public void setCCW(final int theCCW) {
+        myCCW = theCCW;
+    }
+    
+    /**
+     * 
+     * @param theCW
+     */
+    public void setCW(final int theCW) {
+        myCW = theCW;
+    }
+    
+    /**
+     * 
+     * @param theHold
+     */
+    public void setHold(final int theHold) {
+        myHold = theHold;
+    }
+    
+    /**
+     * 
+     * @param thePause
+     */
+    public void setPause(final int thePause) {
+        myPause = thePause;
+    }
+    
+    public final void defaultControls() {
+        myLeft = KeyEvent.VK_LEFT;
+        myRight = KeyEvent.VK_RIGHT;
+        myDown = KeyEvent.VK_DOWN;
+        myDrop = KeyEvent.VK_UP;
+        
+        myCCW = 'z';
+        myCW = 'x';
+        myHold = 'a';
+        
+        myPause = KeyEvent.VK_ENTER;
+    }
+    public final void gamePaused() {     
+        myLeft = 0;
+        myRight = 0;
+        myDown = 0;
+        myDrop = 0;
+        
+        myCCW = 0;
+        myCW = 0;
+        myHold = 0;
+        
+        myPause = KeyEvent.VK_ENTER;
+    }
+    
+}
